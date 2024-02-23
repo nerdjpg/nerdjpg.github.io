@@ -25,11 +25,11 @@
             "esri/widgets/Search",
             "esri/widgets/LayerList",
             "esri/widgets/Locate",
-
-        ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic, geometryEngine, Home, Legend, Expand, Swipe, DotDensityRenderer, FeatureLayer, Search, LayerList, Locate) {
+            "esri/core/reactiveUtils"
+        ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic, geometryEngine, Home, Legend, Expand, Swipe, DotDensityRenderer, FeatureLayer, Search, LayerList, Locate, reactiveUtils) {
             let bufferLayer = new GraphicsLayer(
                 {
-                    
+
                     title: ".25 mile buffer",
                 }
             );
@@ -350,7 +350,7 @@
                                     title: "Buffer",
                                     symbol: {
                                         type: "simple-fill",
-                                        color: [255,255,255], // Blue, semi-transparent
+                                        color: [255, 255, 255], // Blue, semi-transparent
                                         // no outline
                                         outline: {
                                             color: [0, 0, 0, 0],
@@ -365,7 +365,7 @@
                     });
                 }).catch((error) => console.error("Error loading layer:", error));
             }
-        // apply multiply blend mode to buffer layer
+            // apply multiply blend mode to buffer layer
             bufferLayer.blendMode = "overlay";
 
             view.ui.add(new Expand({
@@ -377,8 +377,29 @@
 
             const toggleButton = document.getElementById("cluster");
 
+            const instructionsExpand = new Expand({
+                expandIcon: "question",
+                expandTooltip: "How to use this sample",
+                view: view,
+                expanded: true,
+                content: `
+        <div style='width:200px; padding:10px; background-color:gray'><b></b> turn on ACS layer and <b>click</b> to view race breakdown of census tract <br><br>Open Layer list to enable/disable clustering and add buffers.<br><br><b>Shotspotter Data Source:</b> Wired<a href="https://www.wired.com/story/shotspotter-secret-sensor-locations-leak/"></div>
+        `
+            });
+            view.ui.add(instructionsExpand, "top-right");
+            // Close the 'help' popup when view is focused
+            reactiveUtils.watch(
+                () => view.focused,
+                (focused) => {
+                    if (focused) {
+                        instructionsExpand.expanded = false;
+                    }
+                }
+            );
+
             // To turn off clustering on a layer, set the
             // featureReduction property to null
+
 
             let buffersVisible = false; // Track buffer visibility
 
