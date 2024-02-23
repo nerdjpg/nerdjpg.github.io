@@ -29,6 +29,7 @@
         ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic, geometryEngine, Home, Legend, Expand, Swipe, DotDensityRenderer, FeatureLayer, Search, LayerList, Locate) {
             let bufferLayer = new GraphicsLayer(
                 {
+                    
                     title: ".25 mile buffer",
                 }
             );
@@ -349,10 +350,11 @@
                                     title: "Buffer",
                                     symbol: {
                                         type: "simple-fill",
-                                        color: [0, 0, 255, 0.3], // Blue, semi-transparent
+                                        color: [255,255,255], // Blue, semi-transparent
+                                        // no outline
                                         outline: {
-                                            color: [0, 0, 255],
-                                            width: 1
+                                            color: [0, 0, 0, 0],
+                                            width: 0
                                         }
                                     },
 
@@ -363,7 +365,8 @@
                     });
                 }).catch((error) => console.error("Error loading layer:", error));
             }
-
+        // apply multiply blend mode to buffer layer
+            bufferLayer.blendMode = "overlay";
 
             view.ui.add(new Expand({
                 view: view,
