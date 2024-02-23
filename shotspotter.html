@@ -269,7 +269,7 @@
             });
             view.when(() => {
                 // Move the Zoom widget to the bottom-right corner
-                view.ui.move("zoom", "bottom-left");
+                view.ui.move("zoom", "top-right");
             });
             view.ui.add("titleDiv", "top-left");
 
@@ -288,7 +288,7 @@
                 view: view
             });
 
-            view.ui.add(search, "top-right");
+            view.ui.add(search, "bottom-left");
             // create a layerlist and expand widget and add to the view
             const layerList = new LayerList({
                 view: view,
@@ -430,18 +430,21 @@
             font-weight: 30;
             padding-bottom: 10px;
         }
-       /* Styles for screens that are 768px wide or less */
-@media (max-width: 768px) {
-    #titleDiv {
-        padding: 5px;
-        width: auto; /* Adjust width to be more responsive */
-    }
 
-    #titleText {
-        font-size: 14pt; /* Smaller font size for mobile */
-        padding-bottom: 5px;
-    }
-}
+        /* Styles for screens that are 768px wide or less */
+        @media (max-width: 768px) {
+            #titleDiv {
+                padding: 5px;
+                width: auto;
+                /* Adjust width to be more responsive */
+            }
+
+            #titleText {
+                font-size: 14pt;
+                /* Smaller font size for mobile */
+                padding-bottom: 5px;
+            }
+        }
     </style>
 </head>
 
