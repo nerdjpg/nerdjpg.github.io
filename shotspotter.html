@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="initial-scale=1,maximum-scale=1,user-scalable=no">
-    <title>National Shotspotter Locations</title>
+    <title>Display GeoJSON with ArcGIS API for JavaScript</title>
     <link rel="stylesheet" href="https://js.arcgis.com/4.28/esri/themes/dark/main.css">
     <script src="https://js.arcgis.com/4.28/"></script>
 
@@ -18,14 +18,187 @@
             "esri/geometry/geometryEngine",
             "esri/widgets/Home",
             "esri/widgets/Legend",
-            "esri/widgets/Expand"
-        ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic, geometryEngine, Home, Legend, Expand) {
-            let bufferLayer = new GraphicsLayer();
+            "esri/widgets/Expand",
+            "esri/widgets/Swipe",
+            "esri/renderers/DotDensityRenderer",
+            "esri/layers/FeatureLayer",
+            "esri/widgets/Search",
+            "esri/widgets/LayerList",
+            "esri/widgets/Locate",
+
+        ], function (Map, MapView, GeoJSONLayer, GraphicsLayer, Graphic, geometryEngine, Home, Legend, Expand, Swipe, DotDensityRenderer, FeatureLayer, Search, LayerList, Locate) {
+            let bufferLayer = new GraphicsLayer(
+                {
+                    title: ".25 mile buffer",
+                }
+            );
+
             const popupTemplate = {
                 title: "Shotspotter Clusters",
                 content: "This cluster represents {cluster_count} shotspotters."
             };
 
+
+
+            const dotDensityRenderer = new DotDensityRenderer({
+                dotValue: 100,
+                outline: null,
+                referenceScale: 577790,  // 1:577,790 view scale
+                legendOptions: {
+                    unit: "people"
+                },
+                attributes: [
+                    {
+                        field: "B03002_003E",
+                        color: "#f23c3f",
+                        label: "White (non-Hispanic)"
+                    },
+                    {
+                        field: "B03002_012E",
+                        color: "#e8ca0d",
+                        label: "Hispanic"
+                    },
+                    {
+                        field: "B03002_004E",
+                        color: "#00b6f1",
+                        label: "Black or African American"
+                    },
+                    {
+                        field: "B03002_006E",
+                        color: "#32ef94",
+                        label: "Asian"
+                    },
+                    {
+                        field: "B03002_005E",
+                        color: "#ff7fe9",
+                        label: "American Indian/Alaskan Native"
+                    },
+                    {
+                        field: "B03002_007E",
+                        color: "#e2c4a5",
+                        label: "Pacific Islander/Hawaiian Native"
+                    },
+                    {
+                        field: "B03002_008E",
+                        color: "#ff6a00",
+                        label: "Other race"
+                    },
+                    {
+                        field: "B03002_009E",
+                        color: "#96f7ef",
+                        label: "Two or more races"
+                    }
+                ]
+            });
+
+            // Add renderer to the layer and define a popup template
+            const url =
+                "https://services.arcgis.com/P3ePLMYs2RVChkJx/arcgis/rest/services/ACS_Population_by_Race_and_Hispanic_Origin_Boundaries/FeatureServer/2";
+            const raceLayer = new FeatureLayer({
+                url: url,
+                minScale: 20000000,
+                visible: false,
+                maxScale: 35000,
+                title: "Current Population Estimates (ACS)",
+                popupTemplate: {
+                    title: "{County}, {State}",
+                    content: [
+                        {
+                            type: "media",
+                            mediaInfos: [
+                                {
+                                    title: "Current Population Estimates (ACS)",
+                                    type: "bar-chart",
+                                    value: {
+                                        fields: [
+                                            "B03002_003E",
+                                            "B03002_012E",
+                                            "B03002_004E",
+                                            "B03002_006E",
+                                            "B03002_005E",
+                                            "B03002_007E",
+                                            "B03002_008E",
+                                            "B03002_008E",
+                                            "B03002_009E"
+                                        ],
+                                        tooltipField: "<field name>"
+                                    }
+                                }
+                            ]
+                        },
+                        {
+                            type: "fields",
+                        }
+                    ],
+                    fieldInfos: [
+                        {
+                            fieldName: "B03002_003E",
+                            label: "White (non-Hispanic)",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_012E",
+                            label: "Hispanic",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_004E",
+                            label: "Black or African American",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_006E",
+                            label: "Asian",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_005E",
+                            label: "American Indian/Alaskan Native",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_007E",
+                            label: "Pacific Islander/Hawaiian Native",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_008E",
+                            label: "Other race",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            },
+                        },
+                        {
+                            fieldName: "B03002_009E",
+                            label: "Two or more races",
+                            format: {
+                                digitSeparator: true,
+                                places: 0,
+                            }
+                        }
+                    ]
+                },
+                renderer: dotDensityRenderer
+            });
             const clusterConfig = {
                 type: "cluster",
                 clusterRadius: "100px",
@@ -72,7 +245,7 @@
                     field: "mag",
                     symbol: {
                         type: "simple-marker",
-                        size: 4,
+                        size: 6,
                         color: "#69dcff",
                         outline: {
                             color: "rgba(0, 139, 174, 0.5)",
@@ -87,17 +260,75 @@
                 layers: [bufferLayer]
             });
 
+
             const view = new MapView({
                 container: "viewDiv",
                 map: map,
                 zoom: 12,
-                center: [-76.6, 39.3]
+                center: [-76.64, 39.30]
             });
+            view.when(() => {
+                // Move the Zoom widget to the bottom-right corner
+                view.ui.move("zoom", "bottom-left");
+            });
+            view.ui.add("titleDiv", "top-left");
+
+            // zoom bottom left
 
             map.add(geojsonLayer);
+            map.add(raceLayer);
+
             view.ui.add(new Home({
                 view: view
             }), "top-left");
+
+
+            // add search widget
+            const search = new Search({
+                view: view
+            });
+
+            view.ui.add(search, "top-right");
+            // create a layerlist and expand widget and add to the view
+            const layerList = new LayerList({
+                view: view,
+            });
+
+            const llExpand = new Expand({
+                view: view,
+                content: layerList,
+                expanded: true,
+            });
+
+
+            const locateBtn = new Locate({
+                view: view
+            });
+
+            // Add the locate widget to the top left corner of the view
+            view.ui.add(locateBtn, {
+                position: "top-left"
+            });
+            view.ui.add(llExpand, "bottom-right");
+
+            // view.when().then(() => {
+            //     // Ensure the layers are fully loaded
+            //     Promise.all([raceLayer.when(), geojsonLayer.when()]).then(() => {
+            //         // Now that the layers are loaded, create the Swipe widget
+            //         const swipe = new Swipe({
+            //             view: view,
+            //             leadingLayers: [raceLayer],
+            //             trailingLayers: [bufferLayer, geojsonLayer],
+            //             position: 35 // Use a percentage to specify the initial position of the Swipe divider
+            //         });
+
+            //         // Add the Swipe widget to the view
+            //         view.ui.add(swipe);
+            //     });
+            // }).catch(error => {
+            //     console.error("Error creating Swipe widget:", error);
+            // });
+
 
             const legend = new Legend({
                 view: view,
@@ -115,16 +346,15 @@
                                 const buffer = geometryEngine.geodesicBuffer(feature.geometry, 0.25, "miles");
                                 const bufferGraphic = new Graphic({
                                     geometry: buffer,
+                                    title: "Buffer",
                                     symbol: {
                                         type: "simple-fill",
-                                        color: [0, 0, 255, 0.4], // Blue, semi-transparent
+                                        color: [0, 0, 255, 0.3], // Blue, semi-transparent
                                         outline: {
                                             color: [0, 0, 255],
                                             width: 1
                                         }
                                     },
-                                    // blending multiply effect
-                                    blendMode: "screen"
 
                                 });
                                 bufferLayer.add(bufferGraphic);
@@ -146,6 +376,7 @@
 
             // To turn off clustering on a layer, set the
             // featureReduction property to null
+
             let buffersVisible = false; // Track buffer visibility
 
             toggleButton.addEventListener("click", () => {
@@ -154,7 +385,7 @@
                 if (fr && fr.type === "cluster") {
                     // Disabling clustering
                     geojsonLayer.featureReduction = null;
-                    toggleButton.innerText = "Enable Clustering and Hide .25 miile Buffers";
+                    toggleButton.innerText = "Enable Clustering and Hide Buffers";
                     if (!buffersVisible) {
                         addBuffers();
                         buffersVisible = true;
@@ -162,7 +393,7 @@
                 } else {
                     // Enabling clustering
                     geojsonLayer.featureReduction = clusterConfig;
-                    toggleButton.innerText = "Disable Clustering and Show .25 mile Buffers";
+                    toggleButton.innerText = "Disable Clustering and Enable Buffers";
                     if (buffersVisible) {
                         bufferLayer.removeAll();
                         buffersVisible = false;
@@ -188,13 +419,29 @@
             left: 10px;
             z-index: 99;
         }
+
+        #titleDiv {
+            padding: 10px;
+            width: 320px;
+        }
+
+        #titleText {
+            font-size: 20pt;
+            font-weight: 30;
+            padding-bottom: 10px;
+        }
     </style>
 </head>
 
 <body>
     <div id="viewDiv"></div>
+    <div id="titleDiv" class="esri-widget">
+        <div id="titleText">Shotspotter Sites</div>
+        <div>.25 mile listening radius, ACS race data</div>
+    </div>
     <div id="infoDiv" class="esri-widget">
-        <button id="cluster" class="esri-button">Disable Clustering</button>
+        <button id="cluster" class="esri-button">Disable Clustering and Enable Buffers</button>
+
         <div id="legendDiv"></div>
     </div>
 </body>
